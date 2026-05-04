@@ -6,6 +6,7 @@ This project is a command-line tool for using the core [EDI module](https://gith
 - What is the ideal tradeoff in terms of search depth versus evaluation strength?
 - Which move ordering heuristics actually matter?
 - Can strong Monte Carlo models be beaten by Alpha-Beta?
+
 The core [`edi`](https://github.com/Chad-Glazier/edi) module implements the actual game-playing programs and the means to collect certain analytics, while this CLI tool is meant to run games between programs to collect and visualize statistics.
 
 ## Installation
