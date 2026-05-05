@@ -32,7 +32,7 @@ func DiagGame[WhiteReport, BlackReport diag.Report](
 		for len(board.Successors()) != 0 {
 
 			var move state.Move
-			
+
 			if player == state.WHITE {
 				report := white(&board, turnTimer)
 				move = report.Move()

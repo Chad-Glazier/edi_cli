@@ -13,12 +13,12 @@ import (
 // next move. That is, if White is the active player when the channel closes,
 // that means that White had no moves left and Black is the winner.
 func Game(
-	white, black edi.VI, 
-	turnTimer time.Duration, 
+	white, black edi.VI,
+	turnTimer time.Duration,
 ) <-chan state.Board {
 
 	ch := make(chan state.Board)
-	
+
 	go func() {
 		defer close(ch)
 
@@ -29,7 +29,7 @@ func Game(
 		for len(board.Successors()) != 0 {
 
 			var move *state.Move
-			
+
 			if player == state.WHITE {
 				move = white.Consult(&board, turnTimer)
 				player = state.BLACK
