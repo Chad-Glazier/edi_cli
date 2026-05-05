@@ -1,4 +1,4 @@
-package output
+package out
 
 import "fmt"
 
@@ -62,7 +62,7 @@ const (
 	RESET           = "\u001B[0m"
 	RESET_FG        = "\u001B[39m"
 	RESET_BG        = "\u001b[49m"
-	RESET_INTENSITY = "\u001b[22m" // bold/dim
+	RESET_INTENSITY = "\u001b[22m"
 )
 
 func fgBlack(s string) string   { return FG_BLACK + s + RESET_FG }
@@ -111,4 +111,11 @@ func reverse(s string) string       { return REVERSE + s + REVERSE_RESET }
 func hidden(s string) string        { return HIDDEN + s + HIDDEN_RESET }
 func strikethrough(s string) string { return STRIKETHROUGH + s + STRIKETHROUGH_RESET }
 
-func clearScreen() { fmt.Print(ERASE_SCREEN + RESET_CURSOR) }
+func ClearScreen() { fmt.Print(ERASE_SCREEN + RESET_CURSOR) }
+
+func setCursor(row, col int) { fmt.Printf("\u001B[%d;%dH", row, col) }
+
+func moveCursorUp(rows int)    { fmt.Printf("\u001B[%dA", rows) }
+func moveCursorDown(rows int)  { fmt.Printf("\u001B[%dB", rows) }
+func moveCursorLeft(cols int)  { fmt.Printf("\u001B[%dD", cols) }
+func moveCursorRight(cols int) { fmt.Printf("\u001B[%dC", cols) }

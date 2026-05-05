@@ -3,7 +3,7 @@ module github.com/Chad-Glazier/edi_cli
 go 1.26.2
 
 require (
-	github.com/Chad-Glazier/edi v0.0.0-20260430214127-01ca22f075a6
+	github.com/Chad-Glazier/edi v0.0.1
 	github.com/spf13/cobra v1.10.2
 )
 
