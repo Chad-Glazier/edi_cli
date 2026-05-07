@@ -6,6 +6,7 @@ import (
 
 	"github.com/Chad-Glazier/edi"
 	"github.com/Chad-Glazier/edi/state"
+	"github.com/Chad-Glazier/edi_cli/ansi"
 	"github.com/Chad-Glazier/edi_cli/out"
 	"github.com/Chad-Glazier/edi_cli/sim"
 	"github.com/spf13/cobra"
@@ -20,7 +21,7 @@ func RunCommand() *cobra.Command {
 			black := edi.EDI{}
 			turnTimer := time.Second * 1
 
-			out.ClearScreen()
+			ansi.ClearScreen()
 
 			boardCh := sim.Game(&white, &black, turnTimer)
 			var activePlayer state.PlayerColor

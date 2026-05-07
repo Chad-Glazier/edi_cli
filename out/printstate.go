@@ -5,62 +5,72 @@ import (
 
 	"github.com/Chad-Glazier/edi/bb"
 	"github.com/Chad-Glazier/edi/state"
+	"github.com/Chad-Glazier/edi_cli/ansi"
 )
 
-func PrintState(board *state.Board, startRow, startCol int) {
+// Prints a given board state to the standard output. The startRow and startCol
+// define the location of the top-left corner of the board; the returned values
+// specify the bottom-right corner of the board.
+func PrintState(
+	board *state.Board, startRow, startCol int,
+) (
+	endRow, endCol int,
+) {
+	ansi.HideCursor()
+	defer ansi.ShowCursor()
+
 	r := startRow
 	c := startCol
 
-	// Header row
-	setCursor(r, c)
+	ansi.SetCursor(r, c)
 	fmt.Print("    0 1 2 3 4 5 6 7 8 9 ")
 
-	// Top border
 	r++
-	setCursor(r, c)
+	ansi.SetCursor(r, c)
 	fmt.Print("  " +
-		CORNER_TOP_LEFT +
-		repeat(21, LINE_HORIZONTAL) +
-		CORNER_TOP_RIGHT,
+		ansi.CORNER_TOP_LEFT +
+		ansi.Repeat(21, ansi.LINE_HORIZONTAL) +
+		ansi.CORNER_TOP_RIGHT,
 	)
 
-	// Board rows
-	for row := 0; row < 10; row++ {
+	for row := range 10 {
 		r++
-		setCursor(r, c)
+		ansi.SetCursor(r, c)
 
-		fmt.Printf("%d %s", row, LINE_VERTICAL)
+		fmt.Printf("%d %s", row, ansi.LINE_VERTICAL)
 
 		for col := 0; col < 10; col++ {
-			s := fgBrightBlack("\u00B7")
+			s := ansi.FgBrightBlack(ansi.VACANT_SQUARE)
 
 			switch {
 			case board.White.Flagged(bb.Pos(row, col)):
-				s = fgBrightCyan("\u25A0")
+				s = ansi.FgBrightCyan(ansi.WHITE_QUEEN)
 				if board.Player == state.WHITE {
-					s = blink(s)
+					s = ansi.Blink(s)
 				}
 			case board.Black.Flagged(bb.Pos(row, col)):
-				s = fgBrightRed("\u25A0")
+				s = ansi.FgBrightRed(ansi.BLACK_QUEEN)
 				if board.Player == state.BLACK {
-					s = blink(s)
+					s = ansi.Blink(s)
 				}
 			case board.Occupancy.Flagged(bb.Pos(row, col)):
-				s = fgWhite("\u2715")
+				s = ansi.FgWhite(ansi.ARROW_SQUARE)
 			}
 
 			fmt.Print(" " + s)
 		}
 
-		fmt.Print(" " + LINE_VERTICAL)
+		fmt.Print(" " + ansi.LINE_VERTICAL)
 	}
 
-	// Bottom border
 	r++
-	setCursor(r, c)
+	ansi.SetCursor(r, c)
 	fmt.Print("  " +
-		CORNER_BOTTOM_LEFT +
-		repeat(21, LINE_HORIZONTAL) +
-		CORNER_BOTTOM_RIGHT,
+		ansi.CORNER_BOTTOM_LEFT +
+		ansi.Repeat(21, ansi.LINE_HORIZONTAL) +
+		ansi.CORNER_BOTTOM_RIGHT,
 	)
+
+	endRow, endCol = startRow + 13, startCol + 14
+	return
 }
