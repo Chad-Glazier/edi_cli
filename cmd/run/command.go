@@ -26,14 +26,14 @@ func RunCommand() *cobra.Command {
 			boardCh := sim.Game(&white, &black, turnTimer)
 			var activePlayer state.PlayerColor
 			for board := range boardCh {
-				out.PrintState(&board, 2, 4)
+				out.PrintState(board, 2, 4)
 				activePlayer = board.Player
 			}
 
 			if activePlayer == state.WHITE {
-				fmt.Println("Black Wins!")
+				fmt.Println("\nBlack Wins!")
 			} else {
-				fmt.Println("White Wins!")
+				fmt.Println("\nWhite Wins!")
 			}
 
 			return nil

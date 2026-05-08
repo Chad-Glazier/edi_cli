@@ -25,18 +25,14 @@ func Game(
 		board := state.InitialState()
 		ch <- board
 
-		player := board.Player
 		for len(board.Successors()) != 0 {
 
-			var move *state.Move
+			var move state.Move
 
-			if player == state.WHITE {
-				move = white.Consult(&board, turnTimer)
-				player = state.BLACK
-
+			if board.Player == state.WHITE {
+				move = *white.Consult(&board, turnTimer)
 			} else {
-				move = black.Consult(&board, turnTimer)
-				player = state.WHITE
+				move = *black.Consult(&board, turnTimer)
 			}
 
 			board.Apply(move)

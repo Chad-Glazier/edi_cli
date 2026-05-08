@@ -12,7 +12,7 @@ import (
 // define the location of the top-left corner of the board; the returned values
 // specify the bottom-right corner of the board.
 func PrintState(
-	board *state.Board, startRow, startCol int,
+	board state.Board, startRow, startCol int,
 ) (
 	endRow, endCol int,
 ) {
