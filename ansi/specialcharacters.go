@@ -18,10 +18,10 @@ const (
 	DIAG_LOWER_LEFT     = "\u2571" // ╱
 	DIAG_UPPER_LEFT     = "\u2572" // ╲
 	DIAG_LOWER_RIGHT    = "\u2572" // ╲
-	WHITE_QUEEN			= "\u25A0" // ■
-	BLACK_QUEEN			= "\u25A0" // ■
-	ARROW_SQUARE		= "\u2715" // ✕
-	VACANT_SQUARE		= "\u00B7" // ·
+	WHITE_QUEEN         = "\u25A0" // ■
+	BLACK_QUEEN         = "\u25A0" // ■
+	ARROW_SQUARE        = "\u2715" // ✕
+	VACANT_SQUARE       = "\u00B7" // ·
 )
 
 // Repeat a string some number of times.

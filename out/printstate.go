@@ -39,16 +39,30 @@ func PrintState(
 
 		fmt.Printf("%d %s", row, ansi.LINE_VERTICAL)
 
-		for col := 0; col < 10; col++ {
+		for col := range 10 {
 			s := ansi.FgBrightBlack(ansi.VACANT_SQUARE)
 
+			pos := bb.Pos(row, col)
+			isWhite := false
+			isBlack := false
+			for i := range 4 {
+				if board.White[i] == pos {
+					isWhite = true
+					break
+				}
+				if board.Black[i] == pos {
+					isBlack = true
+					break
+				}
+			}
+
 			switch {
-			case board.White.Flagged(bb.Pos(row, col)):
+			case isWhite:
 				s = ansi.FgBrightCyan(ansi.WHITE_QUEEN)
 				if board.Player == state.WHITE {
 					s = ansi.Blink(s)
 				}
-			case board.Black.Flagged(bb.Pos(row, col)):
+			case isBlack:
 				s = ansi.FgBrightRed(ansi.BLACK_QUEEN)
 				if board.Player == state.BLACK {
 					s = ansi.Blink(s)
@@ -71,6 +85,6 @@ func PrintState(
 		ansi.CORNER_BOTTOM_RIGHT,
 	)
 
-	endRow, endCol = startRow + 13, startCol + 14
+	endRow, endCol = startRow+13, startCol+14
 	return
 }

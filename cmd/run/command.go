@@ -17,13 +17,13 @@ func RunCommand() *cobra.Command {
 		Use:   "run",
 		Short: "Start a game between two programs",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			white := edi.Arrow{}
-			black := edi.EDI{}
-			turnTimer := time.Second * 1
+			white := &edi.EDI{}
+			black := &edi.Random{}
+			turnTimer := time.Second * 10
 
 			ansi.ClearScreen()
 
-			boardCh := sim.Game(&white, &black, turnTimer)
+			boardCh := sim.Game(white, black, turnTimer)
 			var activePlayer state.PlayerColor
 			for board := range boardCh {
 				out.PrintState(board, 2, 4)
