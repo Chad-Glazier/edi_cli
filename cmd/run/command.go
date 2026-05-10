@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Chad-Glazier/edi"
 	"github.com/Chad-Glazier/edi/state"
 	"github.com/Chad-Glazier/edi_cli/ansi"
 	"github.com/Chad-Glazier/edi_cli/out"
 	"github.com/Chad-Glazier/edi_cli/sim"
+	"github.com/Chad-Glazier/edi_cli/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -17,16 +17,18 @@ func RunCommand() *cobra.Command {
 		Use:   "run",
 		Short: "Start a game between two programs",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			white := &edi.EDI{}
-			black := &edi.Random{}
+
+			white, black := ui.SelectPlayers()
+
 			turnTimer := time.Second * 10
 
 			ansi.ClearScreen()
 
 			boardCh := sim.Game(white, black, turnTimer)
 			var activePlayer state.PlayerColor
+			termWidth, termHeight := ui.TerminalSize()
 			for board := range boardCh {
-				out.PrintState(board, 2, 4)
+				out.PrintState(board, termHeight/2-7, termWidth/2-12)
 				activePlayer = board.Player
 			}
 
