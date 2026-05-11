@@ -12,13 +12,11 @@ import (
 // Prints a given board state to the standard output. The startRow and startCol
 // define the location of the top-left corner of the board; the returned values
 // specify the bottom-right corner of the board.
+//
+// The board is 24 characters wide and 13 lines tall.
 func PrintState(
 	board state.Board, startRow, startCol int,
-) (
-	endRow, endCol int,
 ) {
-	ansi.HideCursor()
-	defer ansi.ShowCursor()
 
 	r := startRow
 	c := startCol
@@ -86,6 +84,5 @@ func PrintState(
 		ui.CORNER_BOTTOM_RIGHT,
 	)
 
-	endRow, endCol = startRow+13, startCol+14
-	return
+	ansi.SetCursor(r+3, 0)
 }
