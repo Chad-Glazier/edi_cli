@@ -7,43 +7,17 @@ import (
 
 	"github.com/Chad-Glazier/edi"
 	"github.com/Chad-Glazier/edi/state"
-	"github.com/Chad-Glazier/edi_cli/ansi"
+	"github.com/Chad-Glazier/edi_cli/cmd/flags"
 	"github.com/Chad-Glazier/edi_cli/out"
 	"github.com/Chad-Glazier/edi_cli/sim"
 	"github.com/Chad-Glazier/edi_cli/ui"
 	"github.com/spf13/cobra"
 )
 
-type VIName string
-
-const (
-	EDI    VIName = "edi"
-	ARROW  VIName = "arrow"
-	RANDOM VIName = "random"
-)
-
-func (v *VIName) String() string {
-	return string(*v)
-}
-
-func (v *VIName) Set(s string) error {
-	switch s {
-	case "edi", "arrow", "random":
-		*v = VIName(s)
-		return nil
-	default:
-		return fmt.Errorf(`must be one of "edi", "arrow", or "random"`)
-	}
-}
-
-func (v *VIName) Type() string {
-	return "VI"
-}
-
 func RunCommand() *cobra.Command {
 
 	var turnTimer time.Duration
-	var whiteName, blackName VIName
+	var whiteName, blackName flags.VIName
 
 	cmd := &cobra.Command{
 		Use:   "run",
@@ -63,28 +37,14 @@ func RunCommand() *cobra.Command {
 			if whiteName == "" && blackName == "" {
 				white, black = ui.SelectPlayers()
 			} else {
-				switch whiteName {
-				case EDI:
-					white = &edi.EDI{}
-				case ARROW:
-					white = &edi.Arrow{}
-				case RANDOM:
-					white = &edi.Random{}
-				}
-				switch blackName {
-				case EDI:
-					black = &edi.EDI{}
-				case ARROW:
-					black = &edi.Arrow{}
-				case RANDOM:
-					black = &edi.Random{}
-				}
+				white = flags.CreateVI(whiteName)
+				black = flags.CreateVI(blackName)
 			}
 
 			width, height := ui.TerminalSize()
-			ansi.ClearScreen()
-			ansi.HideCursor()
-			defer ansi.ShowCursor()
+			ui.ClearScreen()
+			ui.HideCursor()
+			defer ui.ShowCursor()
 
 			boardCh := sim.Game(white, black, turnTimer)
 			var activePlayer state.PlayerColor

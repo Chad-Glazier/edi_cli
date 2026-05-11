@@ -5,7 +5,6 @@ import (
 
 	"github.com/Chad-Glazier/edi/bb"
 	"github.com/Chad-Glazier/edi/state"
-	"github.com/Chad-Glazier/edi_cli/ansi"
 	"github.com/Chad-Glazier/edi_cli/ui"
 )
 
@@ -21,11 +20,11 @@ func PrintState(
 	r := startRow
 	c := startCol
 
-	ansi.SetCursor(r, c)
+	ui.SetCursor(r, c)
 	fmt.Print("    0 1 2 3 4 5 6 7 8 9 ")
 
 	r++
-	ansi.SetCursor(r, c)
+	ui.SetCursor(r, c)
 	fmt.Print("  " +
 		ui.CORNER_TOP_LEFT +
 		ui.Repeat(21, ui.LINE_HORIZONTAL) +
@@ -34,12 +33,12 @@ func PrintState(
 
 	for row := range 10 {
 		r++
-		ansi.SetCursor(r, c)
+		ui.SetCursor(r, c)
 
 		fmt.Printf("%d %s", row, ui.LINE_VERTICAL)
 
 		for col := range 10 {
-			s := ansi.FgBrightBlack(ui.VACANT_SQUARE)
+			s := ui.FgBrightBlack(ui.VACANT_SQUARE)
 
 			pos := bb.Pos(row, col)
 			isWhite := false
@@ -57,17 +56,17 @@ func PrintState(
 
 			switch {
 			case isWhite:
-				s = ansi.FgBrightCyan(ui.WHITE_QUEEN)
+				s = ui.FgBrightCyan(ui.WHITE_QUEEN)
 				if board.Player == state.WHITE {
-					s = ansi.Blink(s)
+					s = ui.Blink(s)
 				}
 			case isBlack:
-				s = ansi.FgBrightRed(ui.BLACK_QUEEN)
+				s = ui.FgBrightRed(ui.BLACK_QUEEN)
 				if board.Player == state.BLACK {
-					s = ansi.Blink(s)
+					s = ui.Blink(s)
 				}
 			case board.Occupancy.Flagged(bb.Pos(row, col)):
-				s = ansi.FgWhite(ui.ARROW_SQUARE)
+				s = ui.FgWhite(ui.ARROW_SQUARE)
 			}
 
 			fmt.Print(" " + s)
@@ -77,12 +76,12 @@ func PrintState(
 	}
 
 	r++
-	ansi.SetCursor(r, c)
+	ui.SetCursor(r, c)
 	fmt.Print("  " +
 		ui.CORNER_BOTTOM_LEFT +
 		ui.Repeat(21, ui.LINE_HORIZONTAL) +
 		ui.CORNER_BOTTOM_RIGHT,
 	)
 
-	ansi.SetCursor(r+3, 0)
+	ui.SetCursor(r+3, 0)
 }
