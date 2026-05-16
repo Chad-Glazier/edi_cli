@@ -5,7 +5,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/Chad-Glazier/edi"
+	"github.com/Chad-Glazier/edi/state"
 	"github.com/Chad-Glazier/edi_cli/cmd/flags"
+	"github.com/Chad-Glazier/edi_cli/sim"
 	"github.com/Chad-Glazier/edi_cli/ui"
 )
 
@@ -19,13 +21,15 @@ type gameModel struct {
 
 	white         edi.VI
 	black         edi.VI
+	turnTimer     time.Duration
+	game 		  <-chan state.Board
+	
 	whiteSelector ui.VISelector
 	blackSelector ui.VISelector
 	board         ui.BoardModel
-	turnTimer     *time.Duration
 }
 
-func NewGameModel(white, black flags.VI, turnTimer *time.Duration) gameModel {
+func NewGameModel(white, black flags.VI, turnTimer time.Duration) gameModel {
 	return gameModel{
 		white:         white.VI(),
 		black:         black.VI(),
@@ -58,7 +62,14 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.blackSelector, _ = m.blackSelector.Update(msg)
 		m.black = m.blackSelector.VI
 	default:
-		m.board, _ = m.board.Update(msg)
+		switch msg.(type) {
+		case ui.SetBoardMsg:
+			m.board, _ = m.board.Update(msg)
+			return m, awaitGameUpdate(m.game)
+		case GameOver:
+			// Handle the game over page.
+			return m, nil
+		}
 	}
 
 	switch msg := msg.(type) {
@@ -73,6 +84,11 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		}
+	}
+
+	if m.white != nil && m.black != nil && m.game == nil {
+		m.game = sim.Game(m.white, m.black, m.turnTimer)
+		return m, awaitGameUpdate(m.game)
 	}
 
 	return m, nil
@@ -90,3 +106,24 @@ func (m gameModel) View() tea.View {
 		return m.board.View()
 	}
 }
+
+
+//
+// Custom commands.
+//
+
+func awaitGameUpdate(game <-chan state.Board) tea.Cmd {
+	return func() tea.Msg {
+		updatedGameState, ok := <-game
+		if !ok {
+			return GameOver{}
+		}
+		return ui.SetBoardMsg(updatedGameState)
+	}
+}
+
+//
+// Custom messages.
+//
+
+type GameOver struct{}

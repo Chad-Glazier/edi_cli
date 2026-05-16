@@ -20,7 +20,7 @@ func RunCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			p := tea.NewProgram(
-				NewGameModel(white, black, &turnTimer),
+				NewGameModel(white, black, turnTimer),
 			)
 			_, err := p.Run()
 			if err != nil {
