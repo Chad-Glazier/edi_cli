@@ -5,7 +5,6 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/Chad-Glazier/edi"
 	"github.com/Chad-Glazier/edi_cli/cmd/flags"
 	"github.com/spf13/cobra"
 )
@@ -13,22 +12,16 @@ import (
 func RunCommand() *cobra.Command {
 
 	var turnTimer time.Duration
-	var whiteName, blackName flags.VIName
+	white, black := flags.VI{}, flags.VI{}
 
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Start a game between two programs",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			var white, black edi.VI
-			if whiteName != "" {
-				white = flags.CreateVI(whiteName)
-			}
-			if blackName != "" {
-				black = flags.CreateVI(blackName)
-			}
-
-			p := tea.NewProgram(NewGameModel(white, black, &turnTimer))
+			p := tea.NewProgram(
+				NewGameModel(white, black, &turnTimer),
+			)
 			_, err := p.Run()
 			if err != nil {
 				log.Fatal(err.Error())
@@ -41,9 +34,9 @@ func RunCommand() *cobra.Command {
 	cmd.Flags().DurationVarP(
 		&turnTimer, "time", "t", 5*time.Second, "time limit per turn")
 	cmd.Flags().VarP(
-		&whiteName, "white", "w", "a VI player: edi, arrow, or random")
+		&white, "white", "w", flags.VI_USAGE)
 	cmd.Flags().VarP(
-		&blackName, "black", "b", "a VI player: edi, arrow, or random")
+		&black, "black", "b", flags.VI_USAGE)
 
 	return cmd
 }

@@ -5,6 +5,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/Chad-Glazier/edi"
+	"github.com/Chad-Glazier/edi_cli/cmd/flags"
 	"github.com/Chad-Glazier/edi_cli/ui"
 )
 
@@ -24,10 +25,10 @@ type gameModel struct {
 	turnTimer     *time.Duration
 }
 
-func NewGameModel(white, black edi.VI, turnTimer *time.Duration) gameModel {
+func NewGameModel(white, black flags.VI, turnTimer *time.Duration) gameModel {
 	return gameModel{
-		white:         white,
-		black:         black,
+		white:         white.VI(),
+		black:         black.VI(),
 		turnTimer:     turnTimer,
 		whiteSelector: ui.NewVISelector(ui.WHITE),
 		blackSelector: ui.NewVISelector(ui.BLACK),
@@ -66,6 +67,7 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.whiteSelector, _ = m.whiteSelector.Update(msg)
 		m.blackSelector, _ = m.blackSelector.Update(msg)
+		m.board, _ = m.board.Update(msg)
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c":
