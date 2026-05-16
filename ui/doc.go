@@ -1,5 +1,5 @@
 /*
-This package contains some utility functions for printing reusable UI
-components, such as progress bars and tables.
+This package contains UI elements, including ANSI escape codes, related utility
+functions, and bubbletea components.
 */
 package ui

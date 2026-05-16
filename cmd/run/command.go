@@ -1,16 +1,12 @@
 package run
 
 import (
-	"errors"
-	"fmt"
+	"log"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/Chad-Glazier/edi"
-	"github.com/Chad-Glazier/edi/state"
 	"github.com/Chad-Glazier/edi_cli/cmd/flags"
-	"github.com/Chad-Glazier/edi_cli/out"
-	"github.com/Chad-Glazier/edi_cli/sim"
-	"github.com/Chad-Glazier/edi_cli/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -22,41 +18,20 @@ func RunCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Start a game between two programs",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if whiteName != "" && blackName == "" {
-				return errors.New("no VI was specified for Black; use --black")
-			}
-			if blackName != "" && whiteName == "" {
-				return errors.New("no VI was specified for White; use --white")
-			}
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			var white, black edi.VI
-			if whiteName == "" && blackName == "" {
-				white, black = ui.SelectPlayers()
-			} else {
+			if whiteName != "" {
 				white = flags.CreateVI(whiteName)
+			}
+			if blackName != "" {
 				black = flags.CreateVI(blackName)
 			}
 
-			width, height := ui.TerminalSize()
-			ui.ClearScreen()
-			ui.HideCursor()
-			defer ui.ShowCursor()
-
-			boardCh := sim.Game(white, black, turnTimer)
-			var activePlayer state.PlayerColor
-			for board := range boardCh {
-				out.PrintState(board, height/2-7, width/2-12)
-				activePlayer = board.Player
-			}
-
-			if activePlayer == state.WHITE {
-				fmt.Println("\nBlack Wins!")
-			} else {
-				fmt.Println("\nWhite Wins!")
+			p := tea.NewProgram(NewGameModel(white, black, &turnTimer))
+			_, err := p.Run()
+			if err != nil {
+				log.Fatal(err.Error())
 			}
 
 			return nil

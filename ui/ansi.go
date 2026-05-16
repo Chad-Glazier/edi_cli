@@ -2,6 +2,11 @@ package ui
 
 import "fmt"
 
+//
+// This file includes a bunch of ANSI escape codes and utility functions that
+// use them.
+//
+
 const (
 	FG_BLACK   = "\u001B[30m"
 	FG_RED     = "\u001B[31m"
