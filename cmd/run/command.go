@@ -32,7 +32,7 @@ func RunCommand() *cobra.Command {
 	}
 
 	cmd.Flags().DurationVarP(
-		&turnTimer, "time", "t", 5*time.Second, "time limit per turn")
+		&turnTimer, "time", "t", 0, "time limit per turn")
 	cmd.Flags().VarP(
 		&white, "white", "w", flags.VI_USAGE)
 	cmd.Flags().VarP(
