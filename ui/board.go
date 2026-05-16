@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/Chad-Glazier/edi/bb"
 	"github.com/Chad-Glazier/edi/state"
 )
@@ -36,11 +37,14 @@ const (
 //
 
 type BoardModel struct {
-	board state.Board
+	State state.Board
+	Style lipgloss.Style
 }
 
 func NewBoardModel() BoardModel {
-	return BoardModel{}
+	return BoardModel{
+		Style: lipgloss.NewStyle(),
+	}
 }
 
 //
@@ -54,13 +58,13 @@ func (b BoardModel) Init() tea.Cmd {
 func (b BoardModel) Update(msg tea.Msg) (BoardModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case SetBoardMsg:
-		b.board = state.Board(msg)
+		b.State = state.Board(msg)
 	}
 
 	return b, nil
 }
 
-func (b BoardModel) View() tea.View {
+func (b BoardModel) View() string {
 	lines := []string{
 		"    0 1 2 3 4 5 6 7 8 9 ",
 		"  " +
@@ -74,7 +78,7 @@ func (b BoardModel) View() tea.View {
 		fmt.Fprintf(&line, "%d %s", row, LINE_VERTICAL)
 		for col := range 10 {
 			var s string
-			switch b.board.Status(bb.Pos(row, col)) {
+			switch b.State.Status(bb.Pos(row, col)) {
 			case state.VACANT:
 				s = FgBrightBlack(VACANT_SQUARE)
 			case state.WHITE_QUEEN:
@@ -96,13 +100,7 @@ func (b BoardModel) View() tea.View {
 			CORNER_BOTTOM_RIGHT,
 	)
 
-	v := tea.View{
-		Content:     strings.Join(lines, "\n"),
-		Cursor:      nil,
-		WindowTitle: "EDI Game",
-		AltScreen:   true,
-	}
-	return v
+	return b.Style.Render(strings.Join(lines, "\n"))
 }
 
 //

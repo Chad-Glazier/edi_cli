@@ -59,7 +59,6 @@ type VISelector struct {
 
 func NewVISelector(style VISelectorStyle) VISelector {
 	v := VISelector{}
-	v.Style = lipgloss.NewStyle()
 	v.list = list.New(VIList, list.NewDefaultDelegate(), 0, 0)
 	switch style {
 	case WHITE:

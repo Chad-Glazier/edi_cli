@@ -1,6 +1,7 @@
 package run
 
 import (
+	"fmt"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
@@ -19,14 +20,15 @@ type gameModel struct {
 	height int
 	width  int
 
-	white         edi.VI
-	black         edi.VI
-	turnTimer     time.Duration
-	game 		  <-chan state.Board
-	
+	white     edi.VI
+	black     edi.VI
+	turnTimer time.Duration
+	game      <-chan state.Board
+
 	whiteSelector ui.VISelector
 	blackSelector ui.VISelector
 	board         ui.BoardModel
+	winner        *state.PlayerColor
 }
 
 func NewGameModel(white, black flags.VI, turnTimer time.Duration) gameModel {
@@ -62,12 +64,12 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.blackSelector, _ = m.blackSelector.Update(msg)
 		m.black = m.blackSelector.VI
 	default:
-		switch msg.(type) {
+		switch msg := msg.(type) {
 		case ui.SetBoardMsg:
 			m.board, _ = m.board.Update(msg)
-			return m, awaitGameUpdate(m.game)
-		case GameOver:
-			// Handle the game over page.
+			return m, awaitGameUpdate(&m)
+		case GameOverMsg:
+			m.winner = &msg.winner
 			return m, nil
 		}
 	}
@@ -88,7 +90,7 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.white != nil && m.black != nil && m.game == nil {
 		m.game = sim.Game(m.white, m.black, m.turnTimer)
-		return m, awaitGameUpdate(m.game)
+		return m, awaitGameUpdate(&m)
 	}
 
 	return m, nil
@@ -102,21 +104,37 @@ func (m gameModel) View() tea.View {
 		return m.whiteSelector.View()
 	case m.black == nil:
 		return m.blackSelector.View()
+	case m.winner == nil:
+		m.board.Style = m.board.Style.Margin(3, 10)
+		v := tea.NewView(m.board.View())
+		v.AltScreen = true
+		return v
 	default:
-		return m.board.View()
+		winner := ""
+		switch *m.winner {
+		case state.WHITE:
+			winner = m.white.Id()
+		case state.BLACK:
+			winner = m.black.Id()
+		}
+		return tea.NewView(fmt.Sprintf("%s Wins!", winner))
 	}
 }
-
 
 //
 // Custom commands.
 //
 
-func awaitGameUpdate(game <-chan state.Board) tea.Cmd {
+func awaitGameUpdate(m *gameModel) tea.Cmd {
 	return func() tea.Msg {
-		updatedGameState, ok := <-game
+		updatedGameState, ok := <-m.game
 		if !ok {
-			return GameOver{}
+			switch m.board.State.Player {
+			case state.WHITE:
+				return GameOverMsg{winner: state.BLACK}
+			case state.BLACK:
+				return GameOverMsg{winner: state.WHITE}
+			}
 		}
 		return ui.SetBoardMsg(updatedGameState)
 	}
@@ -126,4 +144,6 @@ func awaitGameUpdate(game <-chan state.Board) tea.Cmd {
 // Custom messages.
 //
 
-type GameOver struct{}
+type GameOverMsg struct {
+	winner state.PlayerColor
+}
