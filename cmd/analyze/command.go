@@ -1,4 +1,4 @@
-package run
+package analyze
 
 import (
 	"log"
@@ -9,18 +9,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RunCommand() *cobra.Command {
+func AnalyzeCommand() *cobra.Command {
 
 	var turnTimer time.Duration
-	var white, black flags.VI
+	var vi flags.VI
 
 	cmd := &cobra.Command{
-		Use:   "run",
-		Short: "Start a game between two programs",
+		Use:   "analyze",
+		Short: "Have a program play against itself to collect analytics",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			p := tea.NewProgram(
-				NewGameModel(white, black, turnTimer),
+				NewGameModel(vi, turnTimer),
 			)
 			_, err := p.Run()
 			if err != nil {
@@ -34,9 +34,7 @@ func RunCommand() *cobra.Command {
 	cmd.Flags().DurationVarP(
 		&turnTimer, "time", "t", 0, "time limit per turn")
 	cmd.Flags().VarP(
-		&white, "white", "w", flags.VI_USAGE)
-	cmd.Flags().VarP(
-		&black, "black", "b", flags.VI_USAGE)
+		&vi, "vi", "v", flags.VI_USAGE)
 
 	return cmd
 }

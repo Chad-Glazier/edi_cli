@@ -1,4 +1,4 @@
-package run
+package analyze
 
 import (
 	"fmt"
@@ -27,26 +27,22 @@ type gameModel struct {
 	game      <-chan state.Board
 	winner    *state.PlayerColor
 
-	whiteSelector ui.VISelector
-	blackSelector ui.VISelector
-	board         ui.BoardModel
-	timeSelector  ui.TimeSelector
+	viSelector   ui.VISelector
+	board        ui.BoardModel
+	timeSelector ui.TimeSelector
 }
 
-func NewGameModel(white, black flags.VI, turnTimer time.Duration) gameModel {
+func NewGameModel(vi flags.VI, turnTimer time.Duration) gameModel {
 	m := gameModel{
-		turnTimer:     turnTimer,
-		whiteSelector: ui.NewVISelector(ui.WHITE),
-		blackSelector: ui.NewVISelector(ui.BLACK),
-		timeSelector:  ui.NewTimeSelector(),
-		board:         ui.NewBoardModel(),
+		turnTimer:    turnTimer,
+		viSelector:   ui.NewVISelector(ui.NEUTRAL),
+		timeSelector: ui.NewTimeSelector(),
+		board:        ui.NewBoardModel(),
 	}
 
-	if white.New != nil {
-		m.white = white.New()
-	}
-	if black.New != nil {
-		m.black = black.New()
+	if vi.New != nil {
+		m.white = vi.New()
+		m.black = vi.New()
 	}
 
 	return m
@@ -58,8 +54,7 @@ func NewGameModel(white, black flags.VI, turnTimer time.Duration) gameModel {
 
 func (m gameModel) Init() tea.Cmd {
 	return tea.Batch(
-		m.blackSelector.Init(),
-		m.whiteSelector.Init(),
+		m.viSelector.Init(),
 		m.timeSelector.Init(),
 		m.board.Init(),
 	)
@@ -72,11 +67,11 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.timeSelector, _ = m.timeSelector.Update(msg)
 		m.turnTimer = m.timeSelector.TurnTimer
 	case m.white == nil:
-		m.whiteSelector, _ = m.whiteSelector.Update(msg)
-		m.white = m.whiteSelector.VI
-	case m.black == nil:
-		m.blackSelector, _ = m.blackSelector.Update(msg)
-		m.black = m.blackSelector.VI
+		m.viSelector, _ = m.viSelector.Update(msg)
+		if m.viSelector.NewVI != nil {
+			m.white = m.viSelector.NewVI()
+			m.black = m.viSelector.NewVI()			
+		}
 	default:
 		switch msg := msg.(type) {
 		case ui.SetBoardMsg:
@@ -92,8 +87,7 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		m.whiteSelector, _ = m.whiteSelector.Update(msg)
-		m.blackSelector, _ = m.blackSelector.Update(msg)
+		m.viSelector, _ = m.viSelector.Update(msg)
 		m.timeSelector, _ = m.timeSelector.Update(msg)
 		m.board, _ = m.board.Update(msg)
 	case tea.KeyPressMsg:
@@ -118,9 +112,7 @@ func (m gameModel) View() tea.View {
 	case m.turnTimer == 0:
 		return m.timeSelector.View()
 	case m.white == nil:
-		return m.whiteSelector.View()
-	case m.black == nil:
-		return m.blackSelector.View()
+		return m.viSelector.View()
 	case m.winner == nil:
 		v := tea.NewView(lipgloss.Place(
 			m.width,

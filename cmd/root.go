@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/Chad-Glazier/edi_cli/cmd/analyze"
 	"github.com/Chad-Glazier/edi_cli/cmd/run"
 	"github.com/spf13/cobra"
 )
@@ -26,4 +27,5 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(run.RunCommand())
+	rootCmd.AddCommand(analyze.AnalyzeCommand())
 }

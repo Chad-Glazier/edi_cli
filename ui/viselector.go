@@ -54,6 +54,7 @@ const (
 type VISelector struct {
 	list  list.Model
 	VI    edi.VI
+	NewVI func() edi.VI
 	Style lipgloss.Style
 }
 
@@ -88,6 +89,7 @@ func (m VISelector) Update(msg tea.Msg) (VISelector, tea.Cmd) {
 		if msg.String() == "enter" {
 			item := m.list.SelectedItem().(item)
 			m.VI = item.new()
+			m.NewVI = item.new
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:

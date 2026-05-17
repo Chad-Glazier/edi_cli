@@ -24,33 +24,33 @@ func (i timeItem) FilterValue() string { return i.title }
 
 var timeOptions = []list.Item{
 	timeItem{
-		title: "1s",
-		desc:  "1 second per turn (\u2264 92 seconds per game).",
-		duration:   time.Second * 1,
+		title:    "1s",
+		desc:     "\u226492 seconds per game.",
+		duration: time.Second * 1,
 	},
 	timeItem{
-		title: "5s",
-		desc:  "5 seconds per turn (\u2264 8 minutes per game). Appropriate for play against humans.",
-		duration:   time.Second * 5,
+		title:    "5s",
+		desc:     "\u22648 minutes per game. Appropriate for play against humans.",
+		duration: time.Second * 5,
 	},
 	timeItem{
-		title: "30s",
-		desc:  "30 seconds per turn (\u2264 46 minutes per game).",
-		duration:   time.Second * 30,
+		title:    "30s",
+		desc:     "\u226446 minutes per game.",
+		duration: time.Second * 30,
 	},
 	timeItem{
-		title: "1m",
-		desc: "1 minute per turn (\u2264 92 minutes per game).",
+		title:    "1m",
+		desc:     "\u226492 minutes per game.",
 		duration: time.Minute,
 	},
 	timeItem{
-		title: "15m",
-		desc: "15 minutes per turn (\u2264 23 hours per game). Similar to timers that would be used in fast computer chess tournaments.",
+		title:    "15m",
+		desc:     "\u226423 hours per game. Similar to timers that would be used in fast computer chess tournaments.",
 		duration: time.Minute * 15,
 	},
 	timeItem{
-		title: "1hr",
-		desc: "1 hour per turn (\u2264 4 days per game). Similar to high-level computer chess tournaments.",
+		title:    "1hr",
+		desc:     "\u22644 days per game. Similar to high-level computer chess tournaments.",
 		duration: time.Hour,
 	},
 }
@@ -60,14 +60,33 @@ var timeOptions = []list.Item{
 //
 
 type TimeSelector struct {
-	list  list.Model
-	TurnTimer    time.Duration
-	Style lipgloss.Style
+	list      list.Model
+	TurnTimer time.Duration
+	Style     lipgloss.Style
 }
 
 func NewTimeSelector() TimeSelector {
 	m := TimeSelector{}
 	m.list = list.New(timeOptions, list.NewDefaultDelegate(), 0, 0)
+
+	// Styles
+	m.list.Title = " Select a Per-Turn Time Limit "
+	green := lipgloss.Color("#007bff")
+	lime := lipgloss.Color("#26ff00")
+	lightgray := lipgloss.Color("#eeeeee")
+	white := lipgloss.Color("#ffffff")
+	d := list.NewDefaultDelegate()
+	d.Styles.SelectedTitle = d.Styles.SelectedTitle.
+		Foreground(lime).
+		BorderLeftForeground(lime)
+	d.Styles.SelectedDesc = d.Styles.SelectedDesc.
+		Foreground(lightgray).
+		BorderLeftForeground(lime)
+	m.list.SetDelegate(d)
+	m.list.Styles.Title = lipgloss.NewStyle().
+		Background(green).
+		Foreground(white)
+
 	return m
 }
 

@@ -9,11 +9,8 @@ import (
 const VI_USAGE = "a VI player: edi, arrow, or random"
 
 type VI struct {
-	vi edi.VI
-}
-
-func (v *VI) VI() edi.VI {
-	return v.vi
+	Name string
+	New  func() edi.VI
 }
 
 //
@@ -23,20 +20,20 @@ func (v *VI) VI() edi.VI {
 //
 
 func (v *VI) String() string {
-	if v.vi == nil {
-		return ""
-	}
-	return v.vi.Id()
+	return v.Name
 }
 
 func (v *VI) Set(s string) error {
 	switch s {
 	case "edi":
-		v.vi = edi.NewEDI()
+		v.New = edi.NewEDI
+		v.Name = "edi"
 	case "arrow":
-		v.vi = edi.NewArrow()
+		v.New = edi.NewArrow
+		v.Name = "arrow"
 	case "random":
-		v.vi = edi.NewRandom()
+		v.New = edi.NewRandom
+		v.Name = "random"
 	default:
 		return fmt.Errorf(`must be one of "edi", "arrow", or "random"`)
 	}
