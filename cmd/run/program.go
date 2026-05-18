@@ -1,11 +1,9 @@
 package run
 
 import (
-	"fmt"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
 	"github.com/Chad-Glazier/edi"
 	"github.com/Chad-Glazier/edi/state"
 	"github.com/Chad-Glazier/edi_cli/cmd/flags"
@@ -27,19 +25,21 @@ type gameModel struct {
 	game      <-chan state.Board
 	winner    *state.PlayerColor
 
-	whiteSelector ui.VISelector
-	blackSelector ui.VISelector
-	board         ui.BoardModel
-	timeSelector  ui.TimeSelector
+	whiteSelector   ui.VISelector
+	blackSelector   ui.VISelector
+	board           ui.BoardModel
+	timeSelector    ui.TimeSelector
+	systemResources ui.SystemResources
 }
 
 func NewGameModel(white, black flags.VI, turnTimer time.Duration) gameModel {
 	m := gameModel{
-		turnTimer:     turnTimer,
-		whiteSelector: ui.NewVISelector(ui.WHITE),
-		blackSelector: ui.NewVISelector(ui.BLACK),
-		timeSelector:  ui.NewTimeSelector(),
-		board:         ui.NewBoardModel(),
+		turnTimer:       turnTimer,
+		whiteSelector:   ui.NewVISelector(ui.WHITE),
+		blackSelector:   ui.NewVISelector(ui.BLACK),
+		timeSelector:    ui.NewTimeSelector(),
+		board:           ui.NewBoardModel(),
+		systemResources: ui.NewSystemResources(),
 	}
 
 	if white.New != nil {
@@ -53,6 +53,62 @@ func NewGameModel(white, black flags.VI, turnTimer time.Duration) gameModel {
 }
 
 //
+// Helper Methods.
+//
+// These functions are meant to check what broad state the UI is in. For
+// example, whether the user is currently selecting the timer, or the game is
+// running, etc. Such states are determined by checking whether the
+// preconditions for the state are satisfied and ensuring that the
+// postconditions are not. That is, we ensure that everything is necessary for
+// the state to be started, and the state is not yet "finished."
+//
+
+func (m *gameModel) ChoosingTimer() bool {
+	preconditions := true
+	postconditions := m.turnTimer != 0
+
+	return preconditions && !postconditions
+}
+
+func (m *gameModel) ChoosingWhiteVI() bool {
+	preconditions := !m.ChoosingTimer()
+	postconditions := m.white != nil
+
+	return preconditions && !postconditions
+}
+
+func (m *gameModel) ChoosingBlackVI() bool {
+	preconditions := !m.ChoosingWhiteVI()
+	postconditions := m.black != nil
+
+	return preconditions && !postconditions
+}
+
+func (m *gameModel) ReadyToStartGame() bool {
+	preconditions :=
+		!m.ChoosingTimer() &&
+			!m.ChoosingWhiteVI() &&
+			!m.ChoosingBlackVI()
+	postconditions := m.game != nil
+
+	return preconditions && !postconditions
+}
+
+func (m *gameModel) RunningGame() bool {
+	preconditions := m.game != nil
+	postconditions := m.winner != nil
+
+	return preconditions && !postconditions
+}
+
+func (m *gameModel) ShowingEndScreen() bool {
+	preconditions := m.winner != nil
+	postconditions := false
+
+	return preconditions && !postconditions
+}
+
+//
 // Bubbletea methods.
 //
 
@@ -62,22 +118,23 @@ func (m gameModel) Init() tea.Cmd {
 		m.whiteSelector.Init(),
 		m.timeSelector.Init(),
 		m.board.Init(),
+		m.systemResources.Init(),
 	)
 }
 
 func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch {
-	case m.turnTimer == 0:
+	case m.ChoosingTimer():
 		m.timeSelector, _ = m.timeSelector.Update(msg)
 		m.turnTimer = m.timeSelector.TurnTimer
-	case m.white == nil:
+	case m.ChoosingWhiteVI():
 		m.whiteSelector, _ = m.whiteSelector.Update(msg)
 		m.white = m.whiteSelector.VI
-	case m.black == nil:
+	case m.ChoosingBlackVI():
 		m.blackSelector, _ = m.blackSelector.Update(msg)
 		m.black = m.blackSelector.VI
-	default:
+	case m.RunningGame():
 		switch msg := msg.(type) {
 		case ui.SetBoardMsg:
 			m.board, _ = m.board.Update(msg)
@@ -98,12 +155,16 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.board, _ = m.board.Update(msg)
 	case tea.KeyPressMsg:
 		switch msg.String() {
-		case "ctrl+c":
+		case "ctrl+c", "q":
 			return m, tea.Quit
 		}
+	case ui.TickMsg:
+		newSystemResources, tickCmd := m.systemResources.Update(msg)
+		m.systemResources = newSystemResources
+		return m, tickCmd
 	}
 
-	if m.white != nil && m.black != nil && m.game == nil {
+	if m.ReadyToStartGame() {
 		m.game = sim.Game(m.white, m.black, m.turnTimer)
 		return m, awaitGameUpdate(&m)
 	}
@@ -115,42 +176,47 @@ func (m gameModel) View() tea.View {
 	switch {
 	case m.width == 0:
 		return tea.NewView(ui.FgBrightBlack("Loading..."))
-	case m.turnTimer == 0:
+	case m.ChoosingTimer():
 		return m.timeSelector.View()
-	case m.white == nil:
+	case m.ChoosingWhiteVI():
 		return m.whiteSelector.View()
-	case m.black == nil:
+	case m.ChoosingBlackVI():
 		return m.blackSelector.View()
-	case m.winner == nil:
-		v := tea.NewView(lipgloss.Place(
-			m.width,
-			m.height,
-			lipgloss.Center,
-			lipgloss.Center,
-			m.board.View(),
-		))
+	case m.RunningGame():
+		caption := ui.FgBrightCyan(m.white.Id())
+		caption += " vs "
+		caption += ui.FgBrightRed(m.black.Id())
+		v := ui.GameLayout(
+			m.width, m.height,
+			m.systemResources,
+			m.board,
+			caption,
+		)
 		v.AltScreen = true
 		return v
-	default:
-		winner := ""
+	case m.ShowingEndScreen():
+		caption := ""
 		switch *m.winner {
 		case state.WHITE:
-			winner = ui.FgBrightCyan(m.white.Id())
+			caption += ui.FgBrightCyan(m.white.Id())
+			caption += " wins against "
+			caption += ui.FgBrightRed(m.black.Id())
 		case state.BLACK:
-			winner = ui.FgBrightRed(m.black.Id())
+			caption += ui.FgBrightRed(m.black.Id())
+			caption += " wins against "
+			caption += ui.FgBrightCyan(m.white.Id())
 		}
-		return tea.NewView(lipgloss.Place(
-			m.width,
-			m.height,
-			lipgloss.Center,
-			lipgloss.Center,
-			lipgloss.JoinVertical(
-				lipgloss.Center,
-				m.board.View(),
-				fmt.Sprintf("%s Wins!", winner),
-			),
-		))
+		v := ui.GameLayout(
+			m.width, m.height,
+			m.systemResources,
+			m.board,
+			caption,
+		)
+		v.AltScreen = false
+		return v
 	}
+
+	return tea.NewView("Error.")
 }
 
 //

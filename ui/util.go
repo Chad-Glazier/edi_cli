@@ -45,5 +45,8 @@ func getResources() resources {
 	m, _ := proc.MemoryInfo()
 	r.memory = m.RSS
 
+	r.cpuPercent /= 100
+	r.memoryPercent /= 100
+
 	return r
 }

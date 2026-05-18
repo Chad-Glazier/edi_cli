@@ -1,11 +1,9 @@
 package analyze
 
 import (
-	"fmt"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
 	"github.com/Chad-Glazier/edi"
 	"github.com/Chad-Glazier/edi/state"
 	"github.com/Chad-Glazier/edi_cli/cmd/flags"
@@ -53,24 +51,49 @@ func NewGameModel(vi flags.VI, turnTimer time.Duration) gameModel {
 //
 // Helper Methods.
 //
+// These functions are meant to check what broad state the UI is in. For
+// example, whether the user is currently selecting the timer, or the game is
+// running, etc. Such states are determined by checking whether the
+// preconditions for the state are satisfied and ensuring that the
+// postconditions are not. That is, we ensure that everything is necessary for
+// the state to be started, and the state is not yet "finished."
+//
 
 func (m *gameModel) ChoosingTimer() bool {
-	return m.turnTimer == 0
+	preconditions := true
+	postconditions := m.turnTimer != 0
+
+	return preconditions && !postconditions
 }
 
 func (m *gameModel) ChoosingVI() bool {
-	return m.white == nil
+	preconditions := !m.ChoosingTimer()
+	postconditions := m.white != nil
+
+	return preconditions && !postconditions
 }
 
 func (m *gameModel) ReadyToStartGame() bool {
-	return m.white != nil &&
-		m.black != nil &&
-		m.turnTimer != 0 &&
-		m.game == nil
+	preconditions :=
+		!m.ChoosingTimer() &&
+			!m.ChoosingVI()
+	postconditions := m.game != nil
+
+	return preconditions && !postconditions
 }
 
 func (m *gameModel) RunningGame() bool {
-	return m.winner == nil && m.game != nil
+	preconditions := m.game != nil
+	postconditions := m.winner != nil
+
+	return preconditions && !postconditions
+}
+
+func (m *gameModel) ShowingEndScreen() bool {
+	preconditions := m.winner != nil
+	postconditions := false
+
+	return preconditions && !postconditions
 }
 
 //
@@ -117,7 +140,8 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.timeSelector, _ = m.timeSelector.Update(msg)
 		m.board, _ = m.board.Update(msg)
 	case tea.KeyPressMsg:
-		if msg.String() == "ctrl+c" {
+		switch msg.String() {
+		case "ctrl+c", "q":
 			return m, tea.Quit
 		}
 	case ui.TickMsg:
@@ -138,65 +162,45 @@ func (m gameModel) View() tea.View {
 	switch {
 	case m.width == 0:
 		return tea.NewView(ui.FgBrightBlack("Loading..."))
-	case m.turnTimer == 0:
+	case m.ChoosingTimer():
 		return m.timeSelector.View()
-	case m.white == nil:
+	case m.ChoosingVI():
 		return m.viSelector.View()
-	case m.winner == nil:
-		v := tea.NewView(lipgloss.Place(
-			m.width,
-			m.height,
-			lipgloss.Center,
-			lipgloss.Top,
-			lipgloss.JoinVertical(
-				lipgloss.Center,
-				lipgloss.NewStyle().
-					Padding(4, 0, 3).
-					Render(m.systemResources.View()),
-				m.board.View(),
-				lipgloss.NewStyle().
-					Padding(2, 0).
-					Render(fmt.Sprintf(
-						"%s vs %s",
-						ui.FgBrightCyan(m.white.Id()),
-						ui.FgBrightRed(m.black.Id()),
-					),
-					),
-			),
-		))
+	case m.RunningGame():
+		caption := ui.FgBrightCyan(m.white.Id())
+		caption += " vs "
+		caption += ui.FgBrightRed(m.white.Id())
+		v := ui.GameLayout(
+			m.width, m.height,
+			m.systemResources,
+			m.board,
+			caption,
+		)
 		v.AltScreen = true
 		return v
-	default:
-		winner := ""
-		loser := ""
+	case m.ShowingEndScreen():
+		caption := ""
 		switch *m.winner {
 		case state.WHITE:
-			winner = ui.FgBrightCyan(m.white.Id())
-			loser = ui.FgBrightRed(m.black.Id())
+			caption += ui.FgBrightCyan(m.white.Id())
+			caption += " wins against "
+			caption += ui.FgBrightRed(m.black.Id())
 		case state.BLACK:
-			winner = ui.FgBrightRed(m.black.Id())
-			loser = ui.FgBrightCyan(m.white.Id())
+			caption += ui.FgBrightRed(m.black.Id())
+			caption += " wins against "
+			caption += ui.FgBrightCyan(m.white.Id())
 		}
-		return tea.NewView(lipgloss.Place(
-			m.width,
-			m.height,
-			lipgloss.Center,
-			lipgloss.Top,
-			lipgloss.JoinVertical(
-				lipgloss.Center,
-				lipgloss.NewStyle().
-					Padding(4, 0, 3).
-					Render(m.systemResources.View()),
-				m.board.View(),
-				lipgloss.NewStyle().
-					Padding(2, 0).
-					Render(fmt.Sprintf(
-						"%s wins against %s", winner, loser,
-					),
-					),
-			),
-		))
+		v := ui.GameLayout(
+			m.width, m.height,
+			m.systemResources,
+			m.board,
+			caption,
+		)
+		v.AltScreen = false
+		return v
 	}
+
+	return tea.NewView("Error.")
 }
 
 //
