@@ -115,21 +115,19 @@ func (m VISelector) View() tea.View {
 func setNeutralStyles(m *VISelector) {
 	m.list.Title = " Select a VI "
 
-	green := lipgloss.Color("#148200")
+	green := lipgloss.Color("#007bff")
 	lime := lipgloss.Color("#26ff00")
 	lightgray := lipgloss.Color("#eeeeee")
 	white := lipgloss.Color("#ffffff")
-
+	
 	d := list.NewDefaultDelegate()
-
 	d.Styles.SelectedTitle = d.Styles.SelectedTitle.
 		Foreground(lime).
 		BorderLeftForeground(lime)
 	d.Styles.SelectedDesc = d.Styles.SelectedDesc.
 		Foreground(lightgray).
-		BorderLeftForeground(green)
+		BorderLeftForeground(lime)
 	m.list.SetDelegate(d)
-
 	m.list.Styles.Title = lipgloss.NewStyle().
 		Background(green).
 		Foreground(white)

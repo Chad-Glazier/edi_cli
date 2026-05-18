@@ -12,7 +12,7 @@ import (
 // the winner of the game can be determined by which player is set to make the
 // next move. That is, if White is the active player when the channel closes,
 // that means that White had no moves left and Black is the winner.
-func Game(
+func GameWithAnalytics(
 	white, black edi.VI,
 	turnTimer time.Duration,
 ) <-chan state.Board {
@@ -25,7 +25,7 @@ func Game(
 		board := state.InitialState()
 		ch <- board
 
-		for !board.IsTerminal() {
+		for len(board.Successors()) != 0 {
 
 			var move state.Move
 

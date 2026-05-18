@@ -6,6 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/Chad-Glazier/edi_cli/cmd/flags"
+	"github.com/Chad-Glazier/edi_cli/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,7 @@ func RunCommand() *cobra.Command {
 		Short: "Start a game between two programs",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
+			ui.ClearScreen()
 			p := tea.NewProgram(
 				NewGameModel(white, black, turnTimer),
 			)

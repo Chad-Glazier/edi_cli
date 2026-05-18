@@ -6,6 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/Chad-Glazier/edi_cli/cmd/flags"
+	"github.com/Chad-Glazier/edi_cli/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -19,10 +20,9 @@ func AnalyzeCommand() *cobra.Command {
 		Short: "Have a program play against itself to collect analytics",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			p := tea.NewProgram(
-				NewGameModel(vi, turnTimer),
-			)
-			_, err := p.Run()
+			ui.ClearScreen()
+
+			_, err := tea.NewProgram(NewGameModel(vi, turnTimer)).Run()
 			if err != nil {
 				log.Fatal(err.Error())
 			}

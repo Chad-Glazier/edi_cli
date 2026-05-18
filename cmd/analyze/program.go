@@ -79,7 +79,7 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, awaitGameUpdate(&m)
 		case GameOverMsg:
 			m.winner = &msg.winner
-			return m, nil
+			return m, tea.Quit
 		}
 	}
 
