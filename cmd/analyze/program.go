@@ -27,17 +27,19 @@ type gameModel struct {
 	game      <-chan state.Board
 	winner    *state.PlayerColor
 
-	viSelector   ui.VISelector
-	board        ui.BoardModel
-	timeSelector ui.TimeSelector
+	viSelector      ui.VISelector
+	board           ui.BoardModel
+	timeSelector    ui.TimeSelector
+	systemResources ui.SystemResources
 }
 
 func NewGameModel(vi flags.VI, turnTimer time.Duration) gameModel {
 	m := gameModel{
-		turnTimer:    turnTimer,
-		viSelector:   ui.NewVISelector(ui.NEUTRAL),
-		timeSelector: ui.NewTimeSelector(),
-		board:        ui.NewBoardModel(),
+		turnTimer:       turnTimer,
+		viSelector:      ui.NewVISelector(ui.NEUTRAL),
+		timeSelector:    ui.NewTimeSelector(),
+		board:           ui.NewBoardModel(),
+		systemResources: ui.NewSystemResources(),
 	}
 
 	if vi.New != nil {
@@ -49,6 +51,29 @@ func NewGameModel(vi flags.VI, turnTimer time.Duration) gameModel {
 }
 
 //
+// Helper Methods.
+//
+
+func (m *gameModel) ChoosingTimer() bool {
+	return m.turnTimer == 0
+}
+
+func (m *gameModel) ChoosingVI() bool {
+	return m.white == nil
+}
+
+func (m *gameModel) ReadyToStartGame() bool {
+	return m.white != nil &&
+		m.black != nil &&
+		m.turnTimer != 0 &&
+		m.game == nil
+}
+
+func (m *gameModel) RunningGame() bool {
+	return m.winner == nil && m.game != nil
+}
+
+//
 // Bubbletea methods.
 //
 
@@ -57,22 +82,23 @@ func (m gameModel) Init() tea.Cmd {
 		m.viSelector.Init(),
 		m.timeSelector.Init(),
 		m.board.Init(),
+		m.systemResources.Init(),
 	)
 }
 
 func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch {
-	case m.turnTimer == 0:
+	case m.ChoosingTimer():
 		m.timeSelector, _ = m.timeSelector.Update(msg)
 		m.turnTimer = m.timeSelector.TurnTimer
-	case m.white == nil:
+	case m.ChoosingVI():
 		m.viSelector, _ = m.viSelector.Update(msg)
 		if m.viSelector.NewVI != nil {
 			m.white = m.viSelector.NewVI()
-			m.black = m.viSelector.NewVI()			
+			m.black = m.viSelector.NewVI()
 		}
-	default:
+	case m.RunningGame():
 		switch msg := msg.(type) {
 		case ui.SetBoardMsg:
 			m.board, _ = m.board.Update(msg)
@@ -91,13 +117,16 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.timeSelector, _ = m.timeSelector.Update(msg)
 		m.board, _ = m.board.Update(msg)
 	case tea.KeyPressMsg:
-		switch msg.String() {
-		case "ctrl+c":
+		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
+	case ui.TickMsg:
+		newSystemResources, tickCmd := m.systemResources.Update(msg)
+		m.systemResources = newSystemResources
+		return m, tickCmd
 	}
 
-	if m.white != nil && m.black != nil && m.game == nil {
+	if m.ReadyToStartGame() {
 		m.game = sim.Game(m.white, m.black, m.turnTimer)
 		return m, awaitGameUpdate(&m)
 	}
@@ -118,28 +147,53 @@ func (m gameModel) View() tea.View {
 			m.width,
 			m.height,
 			lipgloss.Center,
-			lipgloss.Center,
-			m.board.View(),
+			lipgloss.Top,
+			lipgloss.JoinVertical(
+				lipgloss.Center,
+				lipgloss.NewStyle().
+					Padding(4, 0, 3).
+					Render(m.systemResources.View()),
+				m.board.View(),
+				lipgloss.NewStyle().
+					Padding(2, 0).
+					Render(fmt.Sprintf(
+						"%s vs %s",
+						ui.FgBrightCyan(m.white.Id()),
+						ui.FgBrightRed(m.black.Id()),
+					),
+					),
+			),
 		))
 		v.AltScreen = true
 		return v
 	default:
 		winner := ""
+		loser := ""
 		switch *m.winner {
 		case state.WHITE:
 			winner = ui.FgBrightCyan(m.white.Id())
+			loser = ui.FgBrightRed(m.black.Id())
 		case state.BLACK:
 			winner = ui.FgBrightRed(m.black.Id())
+			loser = ui.FgBrightCyan(m.white.Id())
 		}
 		return tea.NewView(lipgloss.Place(
 			m.width,
 			m.height,
 			lipgloss.Center,
-			lipgloss.Center,
+			lipgloss.Top,
 			lipgloss.JoinVertical(
 				lipgloss.Center,
+				lipgloss.NewStyle().
+					Padding(4, 0, 3).
+					Render(m.systemResources.View()),
 				m.board.View(),
-				fmt.Sprintf("%s Wins!", winner),
+				lipgloss.NewStyle().
+					Padding(2, 0).
+					Render(fmt.Sprintf(
+						"%s wins against %s", winner, loser,
+					),
+					),
 			),
 		))
 	}

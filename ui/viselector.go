@@ -119,7 +119,7 @@ func setNeutralStyles(m *VISelector) {
 	lime := lipgloss.Color("#26ff00")
 	lightgray := lipgloss.Color("#eeeeee")
 	white := lipgloss.Color("#ffffff")
-	
+
 	d := list.NewDefaultDelegate()
 	d.Styles.SelectedTitle = d.Styles.SelectedTitle.
 		Foreground(lime).
