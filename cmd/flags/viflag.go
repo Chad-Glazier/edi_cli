@@ -34,8 +34,11 @@ func (v *VI) Set(s string) error {
 	case "random":
 		v.New = edi.NewRandom
 		v.Name = "random"
+	case "sparrow":
+		v.New = edi.NewSparrow
+		v.Name = "sparrow"
 	default:
-		return fmt.Errorf(`must be one of "edi", "arrow", or "random"`)
+		return fmt.Errorf(`must be one of "edi", "arrow", "sparrow" or "random"`)
 	}
 	return nil
 }

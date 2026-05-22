@@ -33,6 +33,11 @@ var VIList = []list.Item{
 		new:   edi.NewArrow,
 	},
 	item{
+		title: "Sparrow",
+		desc:  "Alpha-beta search with the k-mindist heuristic for leaf evaluation and no move ordering.",
+		new:   edi.NewSparrow,
+	},
+	item{
 		title: "Random",
 		desc:  "Chooses moves at random.",
 		new:   edi.NewRandom,
