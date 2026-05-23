@@ -14,6 +14,7 @@ func AnalyzeCommand() *cobra.Command {
 
 	var turnTimer time.Duration
 	var vi flags.VI
+	var output string
 
 	cmd := &cobra.Command{
 		Use:   "analyze",
@@ -35,6 +36,9 @@ func AnalyzeCommand() *cobra.Command {
 		&turnTimer, "time", "t", 0, "time limit per turn")
 	cmd.Flags().VarP(
 		&vi, "vi", "v", flags.VI_USAGE)
+	cmd.Flags().StringVarP(
+		&output, "output", "o", "analytics.csv", "the name of the file to write analytics to",
+	)
 
 	return cmd
 }

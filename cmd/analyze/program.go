@@ -151,7 +151,7 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.ReadyToStartGame() {
-		m.game = sim.Game(m.white, m.black, m.turnTimer)
+		m.game = sim.GameWithAnalytics(m.white, m.black, m.turnTimer)
 		return m, awaitGameUpdate(&m)
 	}
 
