@@ -7,7 +7,7 @@ import (
 )
 
 // Returns a formatted string representation of a VI's analytics. If the VI
-// yields unsupported analytics, an error is returned. 
+// yields unsupported analytics, an error is returned.
 func AnalyticsView(vi edi.VI) (string, error) {
 	switch a := vi.GetAnalytics().(type) {
 	case edi.EDIAnalytics:
@@ -21,15 +21,10 @@ func AnalyticsView(vi edi.VI) (string, error) {
 	}
 }
 
-
 //
 // Single search alpha-beta analytics.
 //
 
-
-
 //
 // Aggregate alpha-beta analytics.
 //
-
-
