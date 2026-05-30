@@ -25,7 +25,7 @@ func GameWithAnalytics(
 		board := state.InitialState()
 		ch <- board
 
-		for len(board.Successors()) != 0 {
+		for !board.IsTerminal() {
 
 			var move state.Move
 
