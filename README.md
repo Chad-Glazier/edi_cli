@@ -11,7 +11,7 @@ The core [`edi`](https://github.com/Chad-Glazier/edi) module implements the actu
 
 ## Installation
 
-If you want to watch some robots play the game in your terminal and help collect data, feel free to install this tool. At the time of writing, it can only be installed via the `go` CLI, which you can download from [here](https://go.dev/). Once you have Go installed, you can get the EDI CLI tool from here:
+If you want to watch some robots play the game in your terminal and help collect data, feel free to install this tool. At the time of writing, it can only be installed via the `go` CLI which you can download from [here](https://go.dev/). Once you have Go installed, you can get the program from here:
 
 ```sh
 go install https://github.com/edi_cli/edi

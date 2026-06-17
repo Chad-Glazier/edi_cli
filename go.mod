@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	charm.land/bubbletea/v2 v2.0.2
 	charm.land/lipgloss/v2 v2.0.2
-	github.com/Chad-Glazier/edi v0.0.1
+	github.com/Chad-Glazier/edi v0.0.5
 	github.com/spf13/cobra v1.10.2
 )
 
@@ -35,8 +35,6 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 )
-
-replace github.com/Chad-Glazier/edi => ../edi
 
 require (
 	charm.land/bubbles/v2 v2.1.0
