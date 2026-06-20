@@ -2,6 +2,10 @@
 
 >The main website for the EDI project can be visited [here](https://ediproject.org). 
 
+<div width="100%" style="display:flex;align-items:center;justify-content:center;">
+    <img style="width:500px;height:auto;padding:2rem;" src="./docs/img/edi_cli_clip.gif">
+</div>
+
 This project is a command-line tool for using the core [EDI module](https://github.com/Chad-Glazier/edi) to analyze the programs that play the [Game of Amazons](https://en.wikipedia.org/wiki/Game_of_the_Amazons). Amazons has been historically studied and used for computer tournaments, but most of the existing research focuses on justifying and improving the authors' individual programs. In contrast, EDI is an effort to implement a variety of programs to directly compare them in terms of both raw performance (i.e., who wins more often), but also the more specific questions regarding the algorithms such as:
 - What is the ideal tradeoff in terms of search depth versus evaluation strength?
 - Which move ordering heuristics actually matter?
@@ -20,5 +24,5 @@ go install github.com/Chad-Glazier/edi_cli/edi@latest
 Then you're ready to use the program:
 
 ```sh
-edi
+edi help
 ```
